@@ -34,7 +34,7 @@ public class Drivetrain extends SubsystemBase implements Loggable {
   // Swerve module offsets from center.
   // NOTE: +x = front of robot, +y = left of robot. 
   private static final double halfWheelBaseMeters = Units.inchesToMeters(9.75);
-  private static final SwerveDriveKinematics SWERVE_DRIVE_KINEMATICS = new SwerveDriveKinematics(
+  public static final SwerveDriveKinematics SWERVE_DRIVE_KINEMATICS = new SwerveDriveKinematics(
     new Translation2d(-halfWheelBaseMeters, -halfWheelBaseMeters),  // FIXME: Why are left and right switched?
     new Translation2d(-halfWheelBaseMeters, halfWheelBaseMeters),
     new Translation2d(halfWheelBaseMeters, -halfWheelBaseMeters),
@@ -43,7 +43,11 @@ public class Drivetrain extends SubsystemBase implements Loggable {
 
   // Max speeds.
   public static final double MAX_TRANSLATION_SPEED_METERS_PER_SEC = 4.57;
-  public static final double MAX_ROTATION_SPEED_RADIANS_PER_SEC = Math.PI * 4;
+  public static final double MAX_ACCEL_METERS_PER_SEC_SQUARED = MAX_TRANSLATION_SPEED_METERS_PER_SEC * 2.0;
+
+  public static final double MAX_ROTATION_SPEED_RADIANS_PER_SEC = Math.PI * 4.0;
+  public static final double MAX_ROTATION_ACCEL_RADIANS_PER_SEC_SQUARED = MAX_ROTATION_SPEED_RADIANS_PER_SEC * 2.0;
+
   
   // Swerve modules.
   private final SwerveModule[] m_swerveModules;
@@ -77,7 +81,7 @@ public class Drivetrain extends SubsystemBase implements Loggable {
     // Odometry.
     m_odometry = new SwerveDriveOdometry(
       SWERVE_DRIVE_KINEMATICS,
-      Rotation2d.fromDegrees(m_gyro.getYaw()),
+      Rotation2d.fromDegrees(getHeadingDegrees()),
       getSwerveModulePositions(),
       new Pose2d()
     );
@@ -114,7 +118,7 @@ public class Drivetrain extends SubsystemBase implements Loggable {
       xVelocityMetersPerSecond,
       yVelocityMetersPerSecond,
       rotationVelocityRadiansPerSecond,
-      Rotation2d.fromDegrees(-1.0 * m_gyro.getYaw())  // FIXME: why is this negative?
+      Rotation2d.fromDegrees(-1.0 * getHeadingDegrees())  // FIXME: why is this negative?
     );
 
     // Convert to swerve module states, and set states.
@@ -154,9 +158,13 @@ public class Drivetrain extends SubsystemBase implements Loggable {
     m_gyro.setYaw(0.0);
   }
 
+  public double getHeadingDegrees() {
+    return m_gyro.getYaw();
+  }
+
   public Pose2d getRobotPose2d() {
     Pose2d robotPose2d = m_odometry.update(
-      Rotation2d.fromDegrees(m_gyro.getYaw()),
+      Rotation2d.fromDegrees(getHeadingDegrees()),
       getSwerveModulePositions()
     );
     return robotPose2d; 
