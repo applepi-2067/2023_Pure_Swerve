@@ -103,9 +103,9 @@ public class Drivetrain extends SubsystemBase implements Loggable {
   public void drive(double leftStickX, double leftStickY, double rightStickX) {
     // Deadband and square stick values.
     double absDeadbandThreshold = 0.05;
-    leftStickX = deadbandSquareStickInput(absDeadbandThreshold, leftStickX);
-    leftStickY = deadbandSquareStickInput(absDeadbandThreshold, leftStickY);
-    rightStickX = deadbandSquareStickInput(absDeadbandThreshold, rightStickX);
+    leftStickX = deadbandSquareStickInput(leftStickX, absDeadbandThreshold);
+    leftStickY = deadbandSquareStickInput(leftStickY, absDeadbandThreshold);
+    rightStickX = deadbandSquareStickInput(rightStickX, absDeadbandThreshold);
 
     // FIXME: Why are y and rotation not inverted?
     // Negatives account for controller stick signs. xVelocity and yVelocity are in robot coordinates.
@@ -129,7 +129,7 @@ public class Drivetrain extends SubsystemBase implements Loggable {
   public double deadbandSquareStickInput(double value, double absDeadbandThreshold) {
     // Add abs deadband and square values.
     value = deadband(absDeadbandThreshold, value);
-    return Math.pow(value, 2) * Math.signum(value);
+    return Math.pow(value, 2.0) * Math.signum(value);
   }
   
   public double deadband(double absDeadbandThreshold, double x) {
