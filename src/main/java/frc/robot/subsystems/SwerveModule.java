@@ -41,8 +41,9 @@ public class SwerveModule {
 
     public void setTargetState(SwerveModuleState targetState) {
         // Do nothing if target state is to not move.
-        if (targetState.speedMetersPerSecond < 0.001) {
-            targetState = new SwerveModuleState(0.0, m_steerMotor.getPositionRotation2d());
+        if (Math.abs(targetState.speedMetersPerSecond) < 0.001) {
+            m_driveMotor.setTargetVelocityMetersPerSecond(0.0);
+            return;
         }
 
         // Optimize state, inverting steer and drive rotations for shortest turn.
