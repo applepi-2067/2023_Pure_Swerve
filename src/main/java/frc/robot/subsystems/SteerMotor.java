@@ -10,6 +10,7 @@ import com.revrobotics.SparkMaxAbsoluteEncoder.Type;
 import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 
 import frc.robot.utils.Gains;
 
@@ -46,8 +47,7 @@ public class SteerMotor {
 
         // Abs encoder.
         m_absEncoder = m_motor.getAbsoluteEncoder(Type.kDutyCycle);
-        m_absEncoder.setPositionConversionFactor(360.0);  // Use degrees for position.
-        m_absEncoder.setZeroOffset(wheelZeroOffsetDegrees);
+        m_absEncoder.setZeroOffset(Units.degreesToRotations(wheelZeroOffsetDegrees));
 
         // PID controller.
         m_PIDController = m_motor.getPIDController();
@@ -55,8 +55,8 @@ public class SteerMotor {
 
         // Set PID wrapping (-180 to 180 degrees).
         m_PIDController.setPositionPIDWrappingEnabled(true);
-        m_PIDController.setPositionPIDWrappingMinInput(-180.0);
-        m_PIDController.setPositionPIDWrappingMaxInput(180.0);
+        m_PIDController.setPositionPIDWrappingMinInput(-0.5);
+        m_PIDController.setPositionPIDWrappingMaxInput(0.5);
 
         // Config PIDs and smart motion.
         PID_GAINS.setGains(m_PIDController, PID_SLOT);
@@ -71,12 +71,10 @@ public class SteerMotor {
     }
 
     public Rotation2d getPositionRotation2d() {
-        double positionDegrees = m_absEncoder.getPosition();
-        return Rotation2d.fromDegrees(positionDegrees);
+        return Rotation2d.fromRotations(m_absEncoder.getPosition());
     }
 
     public void setTargetPositionRotation2d(Rotation2d targetPositionRotation2d) {
-        double targetPositionDegrees = targetPositionRotation2d.getDegrees();
-        m_PIDController.setReference(targetPositionDegrees, ControlType.kPosition);
+        m_PIDController.setReference(targetPositionRotation2d.getRotations(), ControlType.kPosition);
     }
 }
