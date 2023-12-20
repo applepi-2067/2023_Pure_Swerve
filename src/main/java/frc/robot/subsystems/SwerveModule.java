@@ -21,12 +21,8 @@ public class SwerveModule {
     private final DriveMotor m_driveMotor;
     private final SteerMotor m_steerMotor;
 
-    private final int location;
-
     
     public SwerveModule(int location) {
-        this.location = location;
-
         // Create motors.
         m_driveMotor = new DriveMotor(
             RobotMap.canIDs.Drivetrain.DRIVE[location],
@@ -71,8 +67,6 @@ public class SwerveModule {
     }
 
     public String toString() {
-        String description = "Loc " + location + ":    ";
-        description += getState().toString();
-        return description;
+        return getState().toString();
     }
 }
