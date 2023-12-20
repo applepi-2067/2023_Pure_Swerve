@@ -107,8 +107,7 @@ public class Drivetrain extends SubsystemBase implements Loggable {
     leftStickY = deadbandSquareStickInput(leftStickY, absDeadbandThreshold);
     rightStickX = deadbandSquareStickInput(rightStickX, absDeadbandThreshold);
 
-    // FIXME: Why are y and rotation not inverted?
-    // Negatives account for controller stick signs. xVelocity and yVelocity are in robot coordinates.
+    // Speeds in robot coords.
     double yVelocityMetersPerSecond = leftStickX * MAX_TRANSLATION_SPEED_METERS_PER_SEC;
     double xVelocityMetersPerSecond = -1.0 * leftStickY * MAX_TRANSLATION_SPEED_METERS_PER_SEC;
     double rotationVelocityRadiansPerSecond = rightStickX * MAX_ROTATION_SPEED_RADIANS_PER_SEC;
@@ -146,7 +145,7 @@ public class Drivetrain extends SubsystemBase implements Loggable {
     SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_TRANSLATION_SPEED_METERS_PER_SEC);
 
     // Pass states to each module.
-    for (int location = 0; location < 4; location ++) {
+    for (int location = 0; location < 4; location++) {
       SwerveModule swerveModule = m_swerveModules[location];
       SwerveModuleState state = states[location];
 
@@ -197,11 +196,11 @@ public class Drivetrain extends SubsystemBase implements Loggable {
     return m_swerveModules[3].toString();
   }
 
-  @Log (name="Gyro")
+  @Log (name="Gyro (deg)")
   public String getGyroDescription() {
     // Pitch = hand up, yaw = hand left, roll = hand in.
-    String description = "Pitch=" + rounder.format(m_gyro.getPitch()) + "    ";
-    description += "Yaw=" + rounder.format(m_gyro.getYaw()) + "    ";
+    String description = "Yaw=" + rounder.format(m_gyro.getYaw()) + "    ";
+    description += "Pitch=" + rounder.format(m_gyro.getPitch()) + "    ";
     description += "Roll=" + rounder.format(m_gyro.getRoll());
     return description;
   }
