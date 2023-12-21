@@ -13,7 +13,7 @@ public class SwerveModule {
     private static final double[] STEER_WHEEL_ZERO_OFFSET_DEGREES = {240.52, 157.41, 223.30, 27.93};
 
     // Motor inversions.
-    // TODO: check drive and steer motor inversions.
+    // TODO: check steer motor and encoder inversion.
     private static final boolean[] INVERT_DRIVE_MOTORS = {false, false, false, false};
     private static final boolean[] INVERT_STEER_MOTORS = {false, false, false, false};
 
