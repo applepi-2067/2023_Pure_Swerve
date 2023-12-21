@@ -11,12 +11,12 @@ public class Conversions {
     }
 
 
-    public static double ticksToMeters(double ticks, double ticksPerRev, double gearRatio, double radiusMeters) {
-        return ticks * (1.0 / ticksPerRev) * (1.0 / gearRatio) * (Math.PI * 2.0 * radiusMeters);
+    public static double ticksToMeters(double ticks, double ticksPerRev, double radiusMeters) {
+        return ticks * (1.0 / ticksPerRev) * (Math.PI * 2.0 * radiusMeters);
     }
 
-    public static double metersToTicks(double meters, double ticksPerRev, double gearRatio, double radiusMeters) {
-        return meters * (1.0 / (Math.PI * 2.0 * radiusMeters)) * ticksPerRev * gearRatio;
+    public static double metersToTicks(double meters, double ticksPerRev, double radiusMeters) {
+        return meters * (1.0 / (Math.PI * 2.0 * radiusMeters)) * ticksPerRev;
     }
 
 

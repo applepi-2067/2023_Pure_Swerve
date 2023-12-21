@@ -28,14 +28,14 @@ public class DriveMotor {
     private static final double TICKS_PER_REV = 2048.0;
     private static final double WHEEL_RADIUS_METERS = Units.inchesToMeters(4.0 / 2.0);
 
-    private static final double GEAR_RATIO = (30.0 / 14.0) * (45.0 / 15.0);  // motor pinion -> gear, bevel gear pair.
+    private static final double GEAR_RATIO = 6.12;
 
     // PID.
     private static final int K_TIMEOUT_MS = 10;
     private static final int K_PID_LOOP = 0;
 
     private static final int K_PID_SLOT = 0;
-    private static final Gains PID_GAINS = new Gains(0.025, 0.045, 1.0);
+    private static final Gains PID_GAINS = new Gains(0.01, 0.045, 1.0);
 
 
     public DriveMotor(int canID, boolean invertMotor) {
@@ -71,17 +71,16 @@ public class DriveMotor {
     }
 
     public double getVelocityMetersPerSecond() {
-        double velocityTicksPer100ms = m_motor.getSelectedSensorVelocity(K_PID_LOOP);
+        double velocityTicksPer100ms = m_motor.getSelectedSensorVelocity(K_PID_LOOP) / GEAR_RATIO;
         double velocityRPM = Conversions.ticksPer100msToRPM(velocityTicksPer100ms, TICKS_PER_REV);
         double velocityMetersPerSecond = Conversions.rpmToMetersPerSecond(velocityRPM, WHEEL_RADIUS_METERS);
 
-        double wheelVelocityMetersPerSecond = velocityMetersPerSecond / GEAR_RATIO;
-        return wheelVelocityMetersPerSecond;
+        return velocityMetersPerSecond;
     }
 
     public double getPositionMeters() {
-        double ticks = m_motor.getSelectedSensorPosition();
-        double meters = Conversions.ticksToMeters(ticks, TICKS_PER_REV, GEAR_RATIO, WHEEL_RADIUS_METERS);
+        double ticks = m_motor.getSelectedSensorPosition() / GEAR_RATIO;
+        double meters = Conversions.ticksToMeters(ticks, TICKS_PER_REV, WHEEL_RADIUS_METERS);
         return meters;
     }
 }
