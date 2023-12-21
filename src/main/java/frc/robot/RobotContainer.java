@@ -65,8 +65,10 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // Create trajectory settings.
     TrajectoryConfig trajectoryConfig = new TrajectoryConfig(
-      Drivetrain.MAX_TRANSLATION_SPEED_METERS_PER_SEC,
-      Drivetrain.MAX_ACCEL_METERS_PER_SEC_SQUARED
+      2.0,
+      4.0
+      // Drivetrain.MAX_TRANSLATION_SPEED_METERS_PER_SEC,
+      // Drivetrain.MAX_ACCEL_METERS_PER_SEC_SQUARED
     );
     trajectoryConfig.setKinematics(Drivetrain.SWERVE_DRIVE_KINEMATICS);
 
@@ -74,10 +76,10 @@ public class RobotContainer {
     Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
       new Pose2d(),
       List.of(
-        new Translation2d(1, 0),
-        new Translation2d(1, -1)
+        new Translation2d(1.0, 0.0),
+        new Translation2d(1.0, -1.0)
       ),
-      new Pose2d(2, -1, Rotation2d.fromDegrees(180.0)),
+      new Pose2d(2.0, -1.0, Rotation2d.fromDegrees(180.0)),
       trajectoryConfig
     );
 
@@ -87,7 +89,7 @@ public class RobotContainer {
     PIDController yController = new PIDController(0.0, 0.0, 0.0);
 
 
-    // TODO: find theta controller constraints. Radians vs degrees?
+    // TODO: find theta controller constraints.
     ProfiledPIDController thetaController = new ProfiledPIDController(
       0.0, 0.0, 0.0,
       new Constraints(
@@ -95,7 +97,7 @@ public class RobotContainer {
         Drivetrain.MAX_ROTATION_ACCEL_RADIANS_PER_SEC_SQUARED
       )
     );
-    thetaController.enableContinuousInput(-180.0, 180.0);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
     HolonomicDriveController driveController = new HolonomicDriveController(xController, yController, thetaController);
 
