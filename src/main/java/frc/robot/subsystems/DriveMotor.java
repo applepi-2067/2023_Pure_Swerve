@@ -52,7 +52,7 @@ public class DriveMotor {
         );
         m_motor.configSupplyCurrentLimit(talonCurrentLimit);
 
-        // Config velocity and position control.
+        // Config velocity control.
         m_motor.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, K_PID_LOOP, K_TIMEOUT_MS);
         m_motor.setSelectedSensorPosition(0.0);
         m_motor.configNeutralDeadband(PERCENT_DEADBAND, K_TIMEOUT_MS);
