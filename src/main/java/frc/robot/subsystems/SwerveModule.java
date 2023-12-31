@@ -8,14 +8,12 @@ import frc.robot.constants.RobotMap;
 
 
 public class SwerveModule {
-    // Reported abs encoder position at wheel zero.
-    // TODO: tune wheel zero offsets.
-    private static final double[] STEER_WHEEL_ZERO_OFFSET_DEGREES = {240.52, 157.41, 223.30, 27.93};
+    // Reported CanCoder abs encoder position at wheel zero.
+    private static final double[] STEER_WHEEL_ZERO_OFFSET_DEGREES = {171.99, 28.13, 346.46, 219.9};  // On [0, 360).
 
     // Motor inversions.
-    // TODO: check steer motor and encoder inversion.
-    private static final boolean[] INVERT_DRIVE_MOTORS = {false, false, false, false};
-    private static final boolean[] INVERT_STEER_MOTORS = {false, false, false, false};
+    private static final boolean[] INVERT_DRIVE_MOTORS = {false, false, false, false};  // Drive motor inversion unnecessay (flip steer offset).
+    private static final boolean[] INVERT_STEER_MOTORS = {true, true, true, true};
 
     // Motors.
     private final DriveMotor m_driveMotor;
@@ -27,9 +25,10 @@ public class SwerveModule {
         m_driveMotor = new DriveMotor(
             RobotMap.canIDs.Drivetrain.DRIVE[location],
             INVERT_DRIVE_MOTORS[location]
-            );
+        );
         m_steerMotor = new SteerMotor(
             RobotMap.canIDs.Drivetrain.STEER[location],
+            RobotMap.canIDs.Drivetrain.DRIVE[location],
             STEER_WHEEL_ZERO_OFFSET_DEGREES[location],
             INVERT_STEER_MOTORS[location]
         );
@@ -37,7 +36,7 @@ public class SwerveModule {
 
     public void setTargetState(SwerveModuleState targetState) {
         // Do nothing if target state is to not move.
-        if (Math.abs(targetState.speedMetersPerSecond) < 0.001) {
+        if (Math.abs(targetState.speedMetersPerSecond) < 0.01) {
             m_driveMotor.setTargetVelocityMetersPerSecond(0.0);
             return;
         }
@@ -64,9 +63,5 @@ public class SwerveModule {
             m_steerMotor.getPositionRotation2d()
         );
         return position;
-    }
-
-    public String toString() {
-        return getState().toString();
     }
 }

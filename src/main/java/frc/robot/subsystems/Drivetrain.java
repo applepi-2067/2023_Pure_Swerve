@@ -31,14 +31,13 @@ public class Drivetrain extends SubsystemBase implements Loggable {
   // Rounder for pretty descriptions.
   private static final DecimalFormat rounder = new DecimalFormat("0.000000");
 
-  // Swerve module offsets from center.
-  // NOTE: +x = front of robot, +y = left of robot. 
-  private static final double halfWheelBaseMeters = Units.inchesToMeters(9.75);
+  // Swerve module offsets from center. +x = front of robot, +y = left of robot. 
+  private static final double centerToWheelOffsetMeters = Units.inchesToMeters(13.0 - 2.5);
   public static final SwerveDriveKinematics SWERVE_DRIVE_KINEMATICS = new SwerveDriveKinematics(
-    new Translation2d(-halfWheelBaseMeters, -halfWheelBaseMeters),  // FIXME: Why are left and right switched?
-    new Translation2d(-halfWheelBaseMeters, halfWheelBaseMeters),
-    new Translation2d(halfWheelBaseMeters, -halfWheelBaseMeters),
-    new Translation2d(halfWheelBaseMeters, halfWheelBaseMeters)
+    new Translation2d(-centerToWheelOffsetMeters, centerToWheelOffsetMeters),
+    new Translation2d(-centerToWheelOffsetMeters, -centerToWheelOffsetMeters),
+    new Translation2d(centerToWheelOffsetMeters, centerToWheelOffsetMeters),
+    new Translation2d(centerToWheelOffsetMeters, -centerToWheelOffsetMeters)
   );
 
   // Max speeds.
@@ -107,17 +106,17 @@ public class Drivetrain extends SubsystemBase implements Loggable {
     leftStickY = deadbandSquareStickInput(leftStickY, absDeadbandThreshold);
     rightStickX = deadbandSquareStickInput(rightStickX, absDeadbandThreshold);
 
-    // Speeds in robot coords.
-    double yVelocityMetersPerSecond = leftStickX * MAX_TRANSLATION_SPEED_METERS_PER_SEC;
+    // Speeds in robot coords. Negatives account for stick signs.
+    double yVelocityMetersPerSecond = -1.0 * leftStickX * MAX_TRANSLATION_SPEED_METERS_PER_SEC;
     double xVelocityMetersPerSecond = -1.0 * leftStickY * MAX_TRANSLATION_SPEED_METERS_PER_SEC;
-    double rotationVelocityRadiansPerSecond = rightStickX * MAX_ROTATION_SPEED_RADIANS_PER_SEC;
+    double rotationVelocityRadiansPerSecond = -1.0 * rightStickX * MAX_ROTATION_SPEED_RADIANS_PER_SEC;
 
     // Robot to field oriented speeds.
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
       xVelocityMetersPerSecond,
       yVelocityMetersPerSecond,
       rotationVelocityRadiansPerSecond,
-      Rotation2d.fromDegrees(-1.0 * getHeadingDegrees())  // FIXME: why is this negative?
+      Rotation2d.fromDegrees(getHeadingDegrees())
     );
 
     // Convert to swerve module states, and set states.
@@ -178,22 +177,22 @@ public class Drivetrain extends SubsystemBase implements Loggable {
   // Log state.
   @Log (name="Swerve Module 0")
   public String getSwerveModule0Description() {
-    return m_swerveModules[0].toString();
+    return m_swerveModules[0].getState().toString();
   }
 
   @Log (name="Swerve Module 1")
   public String getSwerveModule1Description() {
-    return m_swerveModules[1].toString();
+    return m_swerveModules[1].getState().toString();
   }
 
   @Log (name="Swerve Module 2")
   public String getSwerveModule2Description() {
-    return m_swerveModules[2].toString();
+    return m_swerveModules[2].getState().toString();
   }
 
   @Log (name="Swerve Module 3")
   public String getSwerveModule3Description() {
-    return m_swerveModules[3].toString();
+    return m_swerveModules[3].getState().toString();
   }
 
   @Log (name="Gyro (deg)")

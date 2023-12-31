@@ -1,80 +1,87 @@
 package frc.robot.subsystems;
 
 
-import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.ControlType;
-import com.revrobotics.CANSparkMax.IdleMode;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.SparkMaxAbsoluteEncoder.Type;
-import com.revrobotics.SparkMaxPIDController;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 
+import frc.robot.utils.Conversions;
 import frc.robot.utils.Gains;
 
 
 public class SteerMotor {
-    // Physical.
-    private static final int CURRENT_LIMIT_AMPS = 30;
+    private final WPI_TalonFX m_motor;
+    private final CANCoder m_canCoder;
+
+    // Motor settings.
+    private static final boolean ENABLE_CURRENT_LIMIT = true;
+    private static final double CONTINUOUS_CURRENT_LIMIT_AMPS = 55.0;
+    private static final double TRIGGER_THRESHOLD_LIMIT_AMPS = 60.0;
+    private static final double TRIGGER_THRESHOLD_TIME_SECONDS = 0.5;
+
+    private static final double PERCENT_DEADBAND = 0.001;
+    
+    // Conversion constants.
+    private static final double TICKS_PER_REV = 2048.0;
+    private static final double GEAR_RATIO = 150.0 / 7.0;
 
     // PID.
-    private static final int PID_SLOT = 0;
-    private static final Gains PID_GAINS = new Gains(20.0, 0.12, 1.0);
+    private static final int K_TIMEOUT_MS = 10;
+    private static final int K_PID_LOOP = 0;
 
-    // Smart motion.
-    private static final double MAX_VELOCITY_RPM = 11_000.0;
-    private static final double MIN_VELOCITY_RPM = 0.0;
-    private static final double MAX_ACCELERATION_RPM_PER_SEC = MAX_VELOCITY_RPM * 2.0;
-    private static final double ALLOWED_ERROR_ROTATIONS = 0.05;
+    private static final int K_PID_SLOT = 0;
+    private static final Gains PID_GAINS = new Gains(0.4, 0.0, 1.0);
 
-    // Motor and PID controller.
-    private final CANSparkMax m_motor;
-    private final SparkMaxPIDController m_PIDController;
+    private static final int CRUISE_VELOCITY_TICKS_PER_100MS = 20_000;
+    private static final int MAX_ACCEL_TICKS_PER_100MS_PER_SEC = CRUISE_VELOCITY_TICKS_PER_100MS * 2;
 
-    // Encoders.
-    private final AbsoluteEncoder m_absEncoder;
 
-    
-    public SteerMotor(int canID, double wheelZeroOffsetDegrees, boolean invertMotor) {
+    public SteerMotor(int canID, int canCoderID, double wheelZeroOffsetDegrees, boolean invertMotor) {
         // Motor.
-        m_motor = new CANSparkMax(canID, MotorType.kBrushless);
-        m_motor.restoreFactoryDefaults();
-        m_motor.setSmartCurrentLimit(CURRENT_LIMIT_AMPS);
-        m_motor.setIdleMode(IdleMode.kBrake);  // Idle brake mode for accurate steering.
+        m_motor = new WPI_TalonFX(canID);
+        m_motor.configFactoryDefault();
+        m_motor.setNeutralMode(NeutralMode.Brake);
         m_motor.setInverted(invertMotor);
 
-        // Abs encoder.
-        m_absEncoder = m_motor.getAbsoluteEncoder(Type.kDutyCycle);
-        m_absEncoder.setZeroOffset(Units.degreesToRotations(wheelZeroOffsetDegrees));
-
-        // PID controller.
-        m_PIDController = m_motor.getPIDController();
-        m_PIDController.setFeedbackDevice(m_absEncoder);
-
-        // Set PID wrapping (-180 to 180 degrees).
-        m_PIDController.setPositionPIDWrappingEnabled(true);
-        m_PIDController.setPositionPIDWrappingMinInput(-0.5);
-        m_PIDController.setPositionPIDWrappingMaxInput(0.5);
-
-        // Config PIDs and smart motion.
-        PID_GAINS.setGains(m_PIDController, PID_SLOT);
-        Gains.configSmartMotion(
-            m_PIDController,
-            MAX_VELOCITY_RPM,
-            MIN_VELOCITY_RPM,
-            MAX_ACCELERATION_RPM_PER_SEC, 
-            ALLOWED_ERROR_ROTATIONS,
-            PID_SLOT
+        // Limit current going to motor.
+        SupplyCurrentLimitConfiguration talonCurrentLimit = new SupplyCurrentLimitConfiguration(
+            ENABLE_CURRENT_LIMIT, CONTINUOUS_CURRENT_LIMIT_AMPS,
+            TRIGGER_THRESHOLD_LIMIT_AMPS, TRIGGER_THRESHOLD_TIME_SECONDS
         );
+        m_motor.configSupplyCurrentLimit(talonCurrentLimit);
+
+        // Seed encoder w/ abs encoder (CAN Coder reading) + wheel zero offset.
+        m_canCoder = new CANCoder(canCoderID);
+
+        double initPositionTicks = Conversions.degreesToTicks(
+            m_canCoder.getAbsolutePosition() - wheelZeroOffsetDegrees,
+            TICKS_PER_REV
+        ) * GEAR_RATIO;
+        m_motor.setSelectedSensorPosition(initPositionTicks);
+
+        // Config position control.
+        m_motor.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, K_PID_LOOP, K_TIMEOUT_MS);
+        m_motor.configNeutralDeadband(PERCENT_DEADBAND, K_TIMEOUT_MS);
+
+        PID_GAINS.setGains(m_motor, K_PID_SLOT, K_PID_LOOP, K_TIMEOUT_MS);
+        Gains.configMotionMagic(m_motor, CRUISE_VELOCITY_TICKS_PER_100MS, MAX_ACCEL_TICKS_PER_100MS_PER_SEC, K_TIMEOUT_MS);
     }
 
     public Rotation2d getPositionRotation2d() {
-        return Rotation2d.fromRotations(m_absEncoder.getPosition());
+        double degrees = Conversions.ticksToDegrees(m_motor.getSelectedSensorPosition(), TICKS_PER_REV) / GEAR_RATIO;
+        return Rotation2d.fromDegrees(degrees);
+
+        // Alternative: read cancoder w/ offset. Also for finding wheel offsets.
+        // return Rotation2d.fromDegrees(m_canCoder.getAbsolutePosition());
     }
 
     public void setTargetPositionRotation2d(Rotation2d targetPositionRotation2d) {
-        m_PIDController.setReference(targetPositionRotation2d.getRotations(), ControlType.kPosition);
+        double ticks = Conversions.degreesToTicks(targetPositionRotation2d.getDegrees(), TICKS_PER_REV) * GEAR_RATIO;
+        m_motor.set(TalonFXControlMode.Position, ticks);
     }
 }

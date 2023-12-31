@@ -27,4 +27,13 @@ public class Conversions {
     public static double rpmToMetersPerSecond(double RPM, double radiusMeters) {
         return RPM * (1.0 / 60.0) * (2 * Math.PI) * radiusMeters;
     }
+
+    
+    public static double degreesToTicks(double degrees, double ticksPerRev) {
+        return degrees * (1.0 / 360.0) * ticksPerRev;
+    }
+
+    public static double ticksToDegrees(double ticks, double ticksPerRev) {
+        return ticks * (1.0 / ticksPerRev) * 360.0;
+    }
 }
