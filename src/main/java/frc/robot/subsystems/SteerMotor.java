@@ -35,7 +35,7 @@ public class SteerMotor {
     private static final int K_PID_LOOP = 0;
 
     private static final int K_PID_SLOT = 0;
-    private static final Gains PID_GAINS = new Gains(0.4, 0.0, 1.0);
+    private static final Gains PID_GAINS = new Gains(0.5, 0.0, 1.0);
 
     private static final int CRUISE_VELOCITY_TICKS_PER_100MS = 20_000;
     private static final int MAX_ACCEL_TICKS_PER_100MS_PER_SEC = CRUISE_VELOCITY_TICKS_PER_100MS * 2;
@@ -45,8 +45,11 @@ public class SteerMotor {
         // Motor.
         m_motor = new WPI_TalonFX(canID);
         m_motor.configFactoryDefault();
-        m_motor.setNeutralMode(NeutralMode.Brake);
         m_motor.setInverted(invertMotor);
+
+        // Coast allows for easier wheel offset tuning.
+        // Note that brake mode isn't neeeded b/c pid loop runs in background continuously.
+        m_motor.setNeutralMode(NeutralMode.Coast);
 
         // Limit current going to motor.
         SupplyCurrentLimitConfiguration talonCurrentLimit = new SupplyCurrentLimitConfiguration(
