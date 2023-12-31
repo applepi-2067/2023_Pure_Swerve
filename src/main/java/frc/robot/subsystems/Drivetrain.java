@@ -101,7 +101,7 @@ public class Drivetrain extends SubsystemBase implements Loggable {
 
   public void drive(double leftStickX, double leftStickY, double rightStickX) {
     // Deadband and square stick values.
-    double absDeadbandThreshold = 0.05;
+    double absDeadbandThreshold = 0.10;
     leftStickX = deadbandSquareStickInput(leftStickX, absDeadbandThreshold);
     leftStickY = deadbandSquareStickInput(leftStickY, absDeadbandThreshold);
     rightStickX = deadbandSquareStickInput(rightStickX, absDeadbandThreshold);
