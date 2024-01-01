@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import frc.robot.utils.Conversions;
 import frc.robot.utils.Gains;
@@ -40,8 +41,15 @@ public class SteerMotor {
     private static final int CRUISE_VELOCITY_TICKS_PER_100MS = 20_000;
     private static final int MAX_ACCEL_TICKS_PER_100MS_PER_SEC = CRUISE_VELOCITY_TICKS_PER_100MS * 2;
 
+    // For debugging.
+    private int canID;
+    private double wheelZeroOffsetDegrees;
+
 
     public SteerMotor(int canID, int canCoderID, double wheelZeroOffsetDegrees, boolean invertMotor) {
+        this.canID = canID;
+        this.wheelZeroOffsetDegrees = wheelZeroOffsetDegrees;
+
         // Motor.
         m_motor = new WPI_TalonFX(canID);
         m_motor.configFactoryDefault();
@@ -77,10 +85,10 @@ public class SteerMotor {
 
     public Rotation2d getPositionRotation2d() {
         double degrees = Conversions.ticksToDegrees(m_motor.getSelectedSensorPosition(), TICKS_PER_REV) / GEAR_RATIO;
-        return Rotation2d.fromDegrees(degrees);
 
-        // Alternative: read cancoder w/ offset. Also for finding wheel offsets.
-        // return Rotation2d.fromDegrees(m_canCoder.getAbsolutePosition());
+        // Log CanCoder position for debugging.
+        SmartDashboard.putNumber("Steer CanCoder " + canID + ": ", m_canCoder.getAbsolutePosition() - wheelZeroOffsetDegrees);
+        return Rotation2d.fromDegrees(degrees);
     }
 
     public void setTargetPositionRotation2d(Rotation2d targetPositionRotation2d) {
